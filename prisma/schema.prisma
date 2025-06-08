@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String         @id @default(cuid())
+  email          String         @unique
+  password       String
+  fullName       String         @map("full_name")
+  atelierName    String?        @map("atelier_name")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  categories      Category[]
+  materials       Material[]
+  finalProducts   FinalProduct[]
+
+  @@map("users")
+}
+
+model Category {
+  id          String     @id @default(cuid())
+  name        String
+  userId      String     @map("user_id")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  materials       Material[]
+  finalProducts   FinalProduct[]
+
+  @@unique([userId, name])
+  @@map("categories")
+}
+
+model Material {
+  id                 String     @id @default(cuid())
+  title              String
+  unitOfMeasure      UnitOfMeasure  @map("unit_of_measure")
+  costPerUnit        Decimal    @map("cost_per_unit") @db.Decimal(10, 2)
+  currentStock       Decimal    @map("current_stock") @db.Decimal(10, 3)
+  imageUrl           String?    @map("image_url")
+  userId             String     @map("user_id")
+  createdAt          DateTime   @default(now()) @map("created_at")
+  updatedAt          DateTime   @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  user               User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categories         Category[]
+  productCompositions ProductComposition[]
+
+  @@unique([userId, title])
+  @@map("materials")
+}
+
+model FinalProduct {
+  id                String     @id @default(cuid())
+  title             String
+  suggestedPrice    Decimal    @map("suggested_price") @db.Decimal(10, 2)
+  currentStock      Int        @default(0) @map("current_stock")
+  imageUrl          String?    @map("image_url")
+  userId            String     @map("user_id")
+  createdAt         DateTime   @default(now()) @map("created_at")
+  updatedAt         DateTime   @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  user              User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categories        Category[]
+  composition       ProductComposition[]
+
+  @@unique([userId, title])
+  @@map("final_products")
+}
+
+model ProductComposition {
+  id              String       @id @default(cuid())
+  finalProductId  String       @map("final_product_id")
+  materialId      String       @map("material_id")
+  quantityUsed    Decimal      @map("quantity_used") @db.Decimal(10, 3)
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  finalProduct    FinalProduct @relation(fields: [finalProductId], references: [id], onDelete: Cascade)
+  material        Material     @relation(fields: [materialId], references: [id], onDelete: Cascade)
+
+  @@unique([finalProductId, materialId])
+  @@map("product_compositions")
+}
+
+enum UnitOfMeasure {
+  UNIT      // Unidade
+  ML        // Mililitro
+  L         // Litro
+  G         // Grama
+  KG        // Kilograma
+  CM        // Centímetro
+  M         // Metro
+  M2        // Metro quadrado
+  CM2       // Centímetro quadrado
+
+  @@map("unit_of_measure")
+}
