@@ -2,10 +2,16 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { MaterialRepository } from '../repositories/material.repository';
 import { CreateMaterialDto } from '../dto/create-material.dto';
 import { Material } from '../types/material';
+import { ProductCostService } from 'src/modules/finalproducts/services/product-cost.service';
+import { PrismaService } from 'src/shared/infra/database/prisma.service';
 
 @Injectable()
 export class MaterialService {
-  constructor(private readonly materialRepository: MaterialRepository) {}
+  constructor(
+    private readonly materialRepository: MaterialRepository,
+    private readonly productCostService: ProductCostService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   async createMaterial(
     createMaterialDto: CreateMaterialDto,
@@ -54,6 +60,20 @@ export class MaterialService {
 
     if (!material) {
       throw new BadRequestException('Falha ao atualizar material.');
+    }
+
+    if (updateData.costPerUnit) {
+      const compositions = await this.prisma.productComposition.findMany({
+        where: { materialId: id },
+        select: { finalProductId: true },
+      });
+
+      const uniqueProductIds = [
+        ...new Set(compositions.map((comp) => comp.finalProductId)),
+      ];
+      for (const productId of uniqueProductIds) {
+        await this.productCostService.updateProductCost(productId);
+      }
     }
 
     return material;

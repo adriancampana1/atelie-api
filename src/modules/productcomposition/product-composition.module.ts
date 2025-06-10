@@ -2,9 +2,10 @@ import { Module } from '@nestjs/common';
 import { ProductCompositionController } from './controllers/product-composition.controller';
 import { ProductCompositionService } from './services/product-composition.service';
 import { ProductCompositionRepository } from './repositories/product-composition.repository';
+import { FinalProductModule } from '../finalproducts/final-product.module';
 
 @Module({
-  imports: [],
+  imports: [FinalProductModule],
   controllers: [ProductCompositionController],
   providers: [ProductCompositionService, ProductCompositionRepository],
   exports: [],

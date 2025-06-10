@@ -42,17 +42,6 @@ export const userWithRelationsSelect = {
       updatedAt: true,
     },
   },
-  productions: {
-    select: {
-      id: true,
-      finalProductId: true,
-      quantityProduced: true,
-      productionDate: true,
-      notes: true,
-      userId: true,
-      createdAt: true,
-    },
-  },
 } as const;
 
 export type User = Prisma.UserGetPayload<{

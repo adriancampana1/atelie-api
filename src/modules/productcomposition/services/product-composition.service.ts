@@ -2,11 +2,13 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { ProductCompositionRepository } from '../repositories/product-composition.repository';
 import { CreateProductCompositionDto } from '../dto/create-product-composition.dto';
 import { ProductComposition } from '../types/product-composition';
+import { ProductCostService } from 'src/modules/finalproducts/services/product-cost.service';
 
 @Injectable()
 export class ProductCompositionService {
   constructor(
     private readonly productCompositionRepository: ProductCompositionRepository,
+    private readonly productCostService: ProductCostService,
   ) {}
 
   async createProductComposition(
@@ -19,6 +21,10 @@ export class ProductCompositionService {
     if (!productComposition) {
       throw new BadRequestException('Falha ao criar composição de produto');
     }
+
+    await this.productCostService.updateProductCost(
+      productComposition.finalProductId,
+    );
 
     return productComposition;
   }
@@ -60,6 +66,10 @@ export class ProductCompositionService {
       throw new BadRequestException('Falha ao atualizar composição de produto');
     }
 
+    await this.productCostService.updateProductCost(
+      productComposition.finalProductId,
+    );
+
     return productComposition;
   }
 
@@ -72,6 +82,10 @@ export class ProductCompositionService {
     if (!productComposition) {
       throw new BadRequestException('Falha ao deletar composição de produto');
     }
+
+    await this.productCostService.updateProductCost(
+      productComposition.finalProductId,
+    );
 
     return productComposition;
   }

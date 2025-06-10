@@ -4,6 +4,7 @@ export const finalProductWithRelations = {
   id: true,
   title: true,
   suggestedPrice: true,
+  calculatedCost: true,
   currentStock: true,
   imageUrl: true,
   createdAt: true,

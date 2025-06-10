@@ -64,6 +64,7 @@ model FinalProduct {
   id                String     @id @default(cuid())
   title             String
   suggestedPrice    Decimal    @map("suggested_price") @db.Decimal(10, 2)
+  calculatedCost    Decimal    @default(0) @map("calculated_cost") @db.Decimal(10, 2)
   currentStock      Int        @default(0) @map("current_stock")
   imageUrl          String?    @map("image_url")
   userId            String     @map("user_id")
