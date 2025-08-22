@@ -10,7 +10,6 @@ RUN npm install
 COPY . .
 RUN npx prisma generate
 RUN npm run build
-RUN npx prisma migrate deploy
 
 FROM node:20-alpine AS runner
 WORKDIR /app
