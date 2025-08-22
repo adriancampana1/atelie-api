@@ -11,7 +11,7 @@ services:
       DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@db:5432/atelie?schema=public}
       JWT_SECRET: ${JWT_SECRET:-changeme}
     ports:
-      - "${PORT:-3001}:3001"
+      - '${PORT:-3001}:3001'
     networks:
       - atelieapp_network
     restart: unless-stopped
