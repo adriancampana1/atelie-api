@@ -19,7 +19,6 @@ ENV NODE_ENV=production
 ENV PORT=3001
 ENV CORS_ORIGIN=http://localhost:3000
 ENV JWT_SECRET=atelie-app
-ENV JWT_EXPIRATION=
 ENV DATABASE_URL="postgresql://postgres:postgres@db:5432/atelie?schema=public"
 
 # Copy only what's needed to run
