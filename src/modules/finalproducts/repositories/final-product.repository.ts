@@ -20,7 +20,7 @@ export class FinalProductRepository {
     const finalProduct = await this.prisma.finalProduct.create({
       data: {
         title,
-        suggestedPrice: parseFloat(suggestedPrice),
+        suggestedPrice: parseFloat(suggestedPrice.replace(',', '.')),
         currentStock,
         imageUrl: imageUrl || null,
         userId,
@@ -58,7 +58,7 @@ export class FinalProductRepository {
       data: {
         ...data,
         suggestedPrice: data.suggestedPrice
-          ? parseFloat(data.suggestedPrice)
+          ? parseFloat(data.suggestedPrice.replace(',', '.'))
           : undefined,
       },
       select: finalProductWithRelations,

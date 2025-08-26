@@ -17,7 +17,9 @@ export class ProductCompositionRepository {
       data: {
         finalProductId: createProductCompositionDto.finalProductId,
         materialId: createProductCompositionDto.materialId,
-        quantityUsed: parseFloat(createProductCompositionDto.quantityUsed),
+        quantityUsed: parseFloat(
+          createProductCompositionDto.quantityUsed.replace(',', '.'),
+        ),
       },
       select: productCompositionWithRelationsSelect,
     });
@@ -51,7 +53,7 @@ export class ProductCompositionRepository {
         finalProductId: updateData.finalProductId,
         materialId: updateData.materialId,
         quantityUsed: updateData.quantityUsed
-          ? parseFloat(updateData.quantityUsed)
+          ? parseFloat(updateData.quantityUsed.replace(',', '.'))
           : undefined,
       },
       select: productCompositionWithRelationsSelect,
