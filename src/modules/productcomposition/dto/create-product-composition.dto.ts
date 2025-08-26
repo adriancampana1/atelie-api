@@ -16,7 +16,7 @@ export class CreateProductCompositionDto {
   @IsNotEmpty({ message: 'Quantidade do insumo é obrigatória' })
   @IsDecimal(
     {
-      decimal_digits: '3',
+      decimal_digits: '1,3',
       locale: 'pt-BR',
     },
     {
