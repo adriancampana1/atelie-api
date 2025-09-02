@@ -16,6 +16,9 @@ async function bootstrap() {
     },
   });
 
+  // If running behind a reverse proxy (NGINX, etc.), trust it to honor X-Forwarded-* headers
+  app.set('trust proxy', true);
+
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   // Serve static files from uploads folder

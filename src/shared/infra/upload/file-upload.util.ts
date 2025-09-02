@@ -38,7 +38,21 @@ export const buildPublicUrl = (
   req: any,
   subfolder: 'materials' | 'final-products',
   filename: string,
-) => `${req.protocol}://${req.get('host')}/uploads/${subfolder}/${filename}`;
+) => {
+  // Prefer an explicit public base URL when available (e.g., https://api.example.com)
+  const explicit = process.env.PUBLIC_BASE_URL?.trim();
+  if (explicit) {
+    const base = explicit.replace(/\/$/, '');
+    return `${base}/uploads/${subfolder}/${filename}`;
+  }
+
+  // Fall back to proxy-aware values
+  const xfProto = (req.headers?.['x-forwarded-proto'] || '').toString();
+  const xfHost = (req.headers?.['x-forwarded-host'] || '').toString();
+  const proto = xfProto.split(',')[0] || req.protocol || 'http';
+  const host = xfHost || req.get('host');
+  return `${proto}://${host}/uploads/${subfolder}/${filename}`;
+};
 
 export const deleteLocalFileByUrl = (url?: string | null) => {
   if (!url) return;
