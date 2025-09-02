@@ -35,6 +35,7 @@ export class FinalProductRepository {
     const finalProducts = await this.prisma.finalProduct.findMany({
       where: { userId },
       select: finalProductWithRelations,
+      orderBy: { createdAt: 'desc' },
     });
 
     return finalProducts;
@@ -49,6 +50,14 @@ export class FinalProductRepository {
     return finalProduct;
   }
 
+  async findByIdAny(id: string): Promise<FinalProduct | null> {
+    const finalProduct = await this.prisma.finalProduct.findUnique({
+      where: { id },
+      select: finalProductWithRelations,
+    });
+    return finalProduct;
+  }
+
   async update(
     id: string,
     data: Partial<CreateFinalProductDto>,
@@ -56,10 +65,13 @@ export class FinalProductRepository {
     const updatedFinalProduct = await this.prisma.finalProduct.update({
       where: { id },
       data: {
-        ...data,
+        title: data.title ?? undefined,
+        imageUrl: data.imageUrl ?? undefined,
         suggestedPrice: data.suggestedPrice
           ? parseFloat(data.suggestedPrice.replace(',', '.'))
           : undefined,
+        currentStock:
+          typeof data.currentStock === 'number' ? data.currentStock : undefined,
       },
       select: finalProductWithRelations,
     });

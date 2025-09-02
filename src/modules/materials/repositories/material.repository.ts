@@ -37,6 +37,7 @@ export class MaterialRepository {
     const materials = await this.prisma.material.findMany({
       where: { userId },
       select: materialWithRelationsSelect,
+      orderBy: { createdAt: 'desc' },
     });
 
     return materials;
@@ -59,11 +60,15 @@ export class MaterialRepository {
     const material = await this.prisma.material.update({
       where: { id, userId },
       data: {
-        title: updateData.title,
-        unitOfMeasure: updateData.unitOfMeasure,
-        costPerUnit: updateData.costPerUnit?.replace(',', '.'),
-        currentStock: updateData.currentStock?.replace(',', '.'),
-        imageUrl: updateData.imageUrl,
+        title: updateData.title ?? undefined,
+        unitOfMeasure: updateData.unitOfMeasure ?? undefined,
+        costPerUnit: updateData.costPerUnit
+          ? updateData.costPerUnit.replace(',', '.')
+          : undefined,
+        currentStock: updateData.currentStock
+          ? updateData.currentStock.replace(',', '.')
+          : undefined,
+        imageUrl: updateData.imageUrl ?? undefined,
         categories: updateData.categoryIds?.length
           ? {
               connect: updateData.categoryIds.map((categoryId) => ({

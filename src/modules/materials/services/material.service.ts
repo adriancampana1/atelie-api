@@ -4,6 +4,10 @@ import { CreateMaterialDto } from '../dto/create-material.dto';
 import { Material } from '../types/material';
 import { ProductCostService } from 'src/modules/finalproducts/services/product-cost.service';
 import { PrismaService } from 'src/shared/infra/database/prisma.service';
+import {
+  buildPublicUrl,
+  deleteLocalFileByUrl,
+} from 'src/shared/infra/upload/file-upload.util';
 
 @Injectable()
 export class MaterialService {
@@ -85,7 +89,37 @@ export class MaterialService {
     if (!material) {
       throw new BadRequestException('Material não encontrado.');
     }
-
+    // Remove previous local file if exists
+    if (material.imageUrl) {
+      deleteLocalFileByUrl(material.imageUrl);
+    }
     await this.materialRepository.delete(id, userId);
+  }
+
+  async attachImage(
+    id: string,
+    userId: string,
+    file: any,
+    req: any,
+  ): Promise<Material> {
+    const material = await this.materialRepository.findById(id, userId);
+    if (!material) {
+      throw new BadRequestException('Material não encontrado.');
+    }
+
+    const imageUrl = buildPublicUrl(req, 'materials', file.filename);
+
+    // Clean up previous local file if any
+    if (material.imageUrl) deleteLocalFileByUrl(material.imageUrl);
+
+    const updated = await this.materialRepository.update(id, userId, {
+      imageUrl,
+    } as any);
+
+    if (!updated) {
+      throw new BadRequestException('Falha ao atualizar imagem do material.');
+    }
+
+    return updated;
   }
 }

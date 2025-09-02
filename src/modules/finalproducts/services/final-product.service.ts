@@ -2,6 +2,10 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { FinalProductRepository } from '../repositories/final-product.repository';
 import { CreateFinalProductDto } from '../dto/create-final-product.dto';
 import { FinalProduct } from '../types/final-product';
+import {
+  buildPublicUrl,
+  deleteLocalFileByUrl,
+} from 'src/shared/infra/upload/file-upload.util';
 
 @Injectable()
 export class FinalProductService {
@@ -66,11 +70,44 @@ export class FinalProductService {
   }
 
   async deleteFinalProduct(id: string): Promise<void> {
+    // Try to fetch product first to cleanup local image file
+    try {
+      const existing = await this.finalProductRepository.findByIdAny(id);
+      if (existing?.imageUrl) {
+        deleteLocalFileByUrl(existing.imageUrl);
+      }
+    } catch {
+      // ignore
+    }
     const deletedFinalProduct = await this.finalProductRepository.delete(id);
     if (!deletedFinalProduct) {
       throw new BadRequestException(
         'Falha ao deletar produto final. Tente novamente mais tarde.',
       );
     }
+  }
+
+  async attachImage(id: string, file: any, req: any): Promise<FinalProduct> {
+    const product = await this.finalProductRepository.findById(
+      id,
+      req?.user?.userId ?? '',
+    );
+    if (!product) {
+      throw new BadRequestException('Produto final não encontrado.');
+    }
+
+    const imageUrl = buildPublicUrl(req, 'final-products', file.filename);
+
+    if (product.imageUrl) deleteLocalFileByUrl(product.imageUrl);
+
+    const updated = await this.finalProductRepository.update(id, {
+      imageUrl,
+    } as any);
+    if (!updated) {
+      throw new BadRequestException(
+        'Falha ao atualizar imagem do produto final.',
+      );
+    }
+    return updated;
   }
 }

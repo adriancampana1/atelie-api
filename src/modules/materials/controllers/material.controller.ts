@@ -10,12 +10,25 @@ import {
   Put,
   Request,
   UseGuards,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { MaterialService } from '../services/material.service';
 import { CreateMaterialDto } from '../dto/create-material.dto';
 import { Material } from '../types/material';
 import { JwtAuthGuard } from 'src/modules/auth/guards/auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  imageFileFilter,
+  storageFactory,
+} from 'src/shared/infra/upload/file-upload.util';
 
 @ApiTags('Insumos')
 @Controller('materials')
@@ -103,5 +116,37 @@ export class MaterialController {
   async deleteMaterial(@Request() req, @Param('id') id: string): Promise<void> {
     const userId = req.user.userId;
     return this.materialService.deleteMaterial(id, userId);
+  }
+
+  @Post(':id/image')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: storageFactory('materials'),
+      fileFilter: imageFileFilter,
+      limits: { fileSize: 5 * 1024 * 1024 },
+    }),
+  )
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: { type: 'string', format: 'binary' },
+      },
+    },
+  })
+  @ApiOperation({ summary: 'Faz upload de imagem para um material' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Imagem enviada com sucesso',
+  })
+  async uploadMaterialImage(
+    @Request() req,
+    @Param('id') id: string,
+    @UploadedFile() file: any,
+  ): Promise<Material> {
+    const userId = req.user.userId;
+    return await this.materialService.attachImage(id, userId, file, req);
   }
 }

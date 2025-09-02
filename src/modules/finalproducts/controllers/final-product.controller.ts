@@ -10,12 +10,25 @@ import {
   Put,
   Request,
   UseGuards,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { FinalProductService } from '../services/final-product.service';
 import { CreateFinalProductDto } from '../dto/create-final-product.dto';
 import { JwtAuthGuard } from 'src/modules/auth/guards/auth.guard';
 import { FinalProduct } from '../types/final-product';
+import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  imageFileFilter,
+  storageFactory,
+} from 'src/shared/infra/upload/file-upload.util';
 
 @ApiTags('Produtos Finais')
 @Controller('final-products')
@@ -113,5 +126,36 @@ export class FinalProductController {
   })
   async deleteFinalProduct(@Param('id') id: string): Promise<void> {
     return this.finalProductService.deleteFinalProduct(id);
+  }
+
+  @Post(':id/image')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: storageFactory('final-products'),
+      fileFilter: imageFileFilter,
+      limits: { fileSize: 5 * 1024 * 1024 },
+    }),
+  )
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: { type: 'string', format: 'binary' },
+      },
+    },
+  })
+  @ApiOperation({ summary: 'Faz upload de imagem para um produto final' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Imagem enviada com sucesso',
+  })
+  async uploadFinalProductImage(
+    @Request() _req,
+    @Param('id') id: string,
+    @UploadedFile() file: any,
+  ): Promise<FinalProduct> {
+    return await this.finalProductService.attachImage(id, file, _req);
   }
 }
