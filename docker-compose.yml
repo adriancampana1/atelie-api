@@ -43,3 +43,7 @@ volumes:
 networks:
   atelieapp_network:
     driver: bridge
+
+  umbrel_network:
+    external: true
+    name: umbrel_main_network
